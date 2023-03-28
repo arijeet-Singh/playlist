@@ -7,7 +7,7 @@ import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import Iframe from "react-iframe";
 import { groupBy } from "core-js/actual/array/group-by";
 import "./CreateCard.css";
-
+let toBeDeleted = [];
 function CreateCard() {
   const [createCard, setCreateCard] = useState(false);
   const [modalClicked, setModalClicked] = useState(false);
@@ -31,20 +31,19 @@ function CreateCard() {
   const [list, setList] = useState();
   const [selectedForDeletion, setSelectedForDeletion] = useState(false);
   let categoryNames = [];
-  let toBeDeleted = [];
+
   let count = 0;
   useEffect(() => {
     getCards();
     window.addEventListener("keydown", (event) => {
       if (event.key === "Delete" && count === 0) {
         count++;
-        console.log(list);
       }
     });
-  }, []);
+  }, [allCards]);
 
   function getCards() {
-    fetch("http://localhost:3000/user")
+    fetch("https://assignment-thgk.onrender.com/user")
       .then((res) => res.json())
       .then((json) => {
         const byCategory = json.groupBy((card) => card.category);
@@ -56,10 +55,9 @@ function CreateCard() {
         setPlaylist(byCategory);
         setAllCards(json);
       });
-    // console.log(byCategory);
   }
   function getHistory() {
-    fetch("http://localhost:5000/history")
+    fetch("https://assignment-thgk.onrender.com/history")
       .then((res) => res.json())
       .then((json) => {
         json.sort((a, b) => {
@@ -76,7 +74,7 @@ function CreateCard() {
   }
 
   function handleDelete(id) {
-    fetch("http://localhost:3000/user/" + id, {
+    fetch("https://assignment-thgk.onrender.com/user/" + id, {
       method: "DELETE",
     }).then((res) => {
       if (res.ok) {
@@ -86,14 +84,13 @@ function CreateCard() {
   }
   const handleUpdateCard = (e, id) => {
     e.preventDefault();
-    console.log(id);
     const body = {
       id,
       cardName: defaultName,
       videoLink: defaultLink,
       category: defaultCategory,
     };
-    fetch("http://localhost:3000/user/" + id, {
+    fetch("https://assignment-thgk.onrender.com/user/" + id, {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
@@ -144,7 +141,7 @@ function CreateCard() {
     } else {
       const id = unique();
       const body = { id, cardName, videoLink, category };
-      fetch("http://localhost:3000/user", {
+      fetch("https://assignment-thgk.onrender.com/user", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
@@ -154,11 +151,10 @@ function CreateCard() {
       setCategory("");
       setModalClicked(false);
       setCreateCard(false);
-      window.location.reload();
+      getCards();
     }
   };
   function handleViewVideo(videoLink, name) {
-    console.log(name);
     let url = "https://www.youtube.com/embed/";
     var id = videoLink.substring(videoLink.lastIndexOf("=") + 1);
     url += id;
@@ -169,12 +165,11 @@ function CreateCard() {
       link: videoLink,
       timestamp: Date.now(),
     };
-    fetch("http://localhost:5000/history", {
+    fetch("https://assignment-thgk.onrender.com/history", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     }).then((res) => {
-      console.log(res);
     });
     setVideoModal(true);
     setViewVideo(true);
@@ -191,7 +186,7 @@ function CreateCard() {
   const handleSelectForDelete = (id) => {
     if (toBeDeleted.includes(id)) {
       const index = toBeDeleted.indexOf(id);
-      if (index >= 0) {
+      if (index > -1) {
         toBeDeleted.splice(index, 1);
       }
     } else {
@@ -269,7 +264,7 @@ function CreateCard() {
         <div className="history">
           <h1 className="heading-all">Playlists</h1>
           <br />
-          <div onClick={handleDeleteMultiple} style={{cursor:"pointer"}}>
+          <div onClick={handleDeleteMultiple} style={{ cursor: "pointer" }}>
             <h1 className="heading-all-1">Delete Selected</h1>
           </div>
           <button className="close-1" onClick={handleClose5}>
